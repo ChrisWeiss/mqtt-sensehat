@@ -11,8 +11,13 @@ from sense_hat import SenseHat
 import paho.mqtt.publish as publish
 
 config = ConfigParser.ConfigParser()
-config.read("/opt/iotdemo/conf/iotdemo.conf")
+config.read("iotdemo.conf")
 
+# Set these based on your ambient temperature in Celsius for best results!
+minimum_temp = 1
+maximum_temp = 38
+red = (255, 0, 0)
+black = (0, 0, 0)
 broker = config.get('common', 'mqtt_broker')
 
 humidity_t = config.get('environment', 'humidity_topic')
@@ -20,23 +25,55 @@ temperature_t = config.get('environment', 'temperature_topic')
 temphum_t = config.get('environment', 'temphum_topic')
 temppress_t = config.get('environment', 'temppress_topic')
 pressure_t = config.get('environment', 'pressure_topic')
-
 sense = SenseHat()
+sense.clear()
 
-while True:
+
+# main
+# get_values
+# post values
+# display
+# draw(local)
+#     for i in house_average, hvac, outside:
+#        get_mqtt(i)
+#        draw_bar(i, i_color)
+
+
+def get_local_values():
    humidity = sense.get_humidity()
    temperature = sense.get_temperature()
    temphum = sense.get_temperature_from_humidity()
    temppress = sense.get_temperature_from_pressure()
    pressure = sense.get_pressure()
+   return(humidity, temperature, temphum, temppress, pressure)
 
+
+def post_local_values(humidity, temperature, temphum, temppress, pressure):
    msgs = [{'topic':humidity_t, 'payload':humidity}, (temperature_t, temperature, 0, False), (temphum_t, temphum, 0, False), (temppress_t, temppress, 0, False), (pressure_t, pressure, 0, False)]
-
    try:
       publish.multiple(msgs, hostname=broker, client_id="sensehat_sensors")
    except (KeyboardInterrupt, SystemExit):
       raise
    except:
-      print "Failed to publish to broker"
+      print("Failed to publish to broker")
 
-   time.sleep(2)
+# column =1
+# iterate through list of variables
+# also add index number for column
+   peak = scale_range(data)
+
+
+
+
+
+def draw_bar(peak, column, color_above, color_below):
+      for i in range(8):
+         print(i)
+         if i <= peak:
+            sense.set_pixel(column, i, color_above)
+         else:
+            sense.set_pixel(column, i, color_below)
+      time.sleep(5)
+
+def scale_range(value, range_min, range_max):
+    return int((value - range_min) / (range_max - range_min) * 8)
